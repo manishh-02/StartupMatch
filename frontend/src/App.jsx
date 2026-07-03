@@ -8,10 +8,20 @@ import {
   CheckCircle, ChevronRight, ChevronLeft, Target, Compass, Award,
   Send, MoreVertical, CheckCheck, Check, Activity, Lightbulb,
   Kanban, Plus, Clock, CheckSquare, ListTodo, Trash2, Edit2, Calculator, DollarSign,
-  TrendingUp, FileText, PieChart, Network, Cpu, Database
+  TrendingUp, FileText, PieChart, Network
 } from 'lucide-react';
-
 import { FaLinkedin, FaGithub, FaTwitter, FaProductHunt, FaDribbble, FaMedium } from 'react-icons/fa';
+
+// ==========================================
+// 🚀 SERVER CONFIGURATION (PERMANENT SOLUTION)
+// ==========================================
+// Bhai, Yahan par apne Render Backend ka URL daal do (Last mein '/' mat lagana)
+// Example: 'https://startupmatch-backend.onrender.com'
+const API_BASE_URL = 'https://YOUR_BACKEND_URL.onrender.com'; 
+
+// WebSockets ke liye 'https' ki jagah 'wss' lagana hai
+// Example: 'wss://startupmatch-backend.onrender.com/ws/chat'
+const WS_BASE_URL = 'wss://YOUR_BACKEND_URL.onrender.com/ws/chat';
 
 // ==========================================
 // 0. GLOBAL HELPER FUNCTIONS
@@ -23,20 +33,13 @@ const safeUrl = (url) => {
 };
 
 const pageVariants = {
-  initial: { opacity: 0, y: 10, filter: 'blur(5px)' },
-  in: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.4, ease: 'easeOut' } },
-  out: { opacity: 0, y: -10, filter: 'blur(5px)', transition: { duration: 0.3, ease: 'easeIn' } }
+  initial: { opacity: 0, y: 15, filter: 'blur(10px)' },
+  in: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.5, ease: 'easeOut' } },
+  out: { opacity: 0, y: -15, filter: 'blur(10px)', transition: { duration: 0.3, ease: 'easeIn' } }
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
-
-const staggerItem = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-};
+const staggerContainer = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+const staggerItem = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } } };
 
 // ==========================================
 // 1. REUSABLE ANIMATED COMPONENTS
@@ -188,7 +191,8 @@ const AuthPage = () => {
         ? { 'Content-Type': 'application/x-www-form-urlencoded' }
         : { 'Content-Type': 'application/json' };
 
-      const response = await fetch(`https://startupmatch-backend.onrender.com${endpoint}`, { method: 'POST', headers, body: payload });
+      // 🌐 DYNAMIC URL USED HERE
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, { method: 'POST', headers, body: payload });
       const data = await response.json();
       
       if (response.ok) {
@@ -201,10 +205,10 @@ const AuthPage = () => {
             setTimeout(() => setIsLogin(true), 2000);
         }
       } else { 
-        setErrorMsg(data.detail || 'Authentication failed.'); 
+        setErrorMsg(data.detail || 'Authentication failed. Check credentials.'); 
       }
     } catch (err) { 
-        setErrorMsg('API Offline. Booting local engine required.'); 
+        setErrorMsg('Network Error: Database/Server is currently unreachable.'); 
     }
     setIsLoading(false);
   };
@@ -219,7 +223,7 @@ const AuthPage = () => {
         <div className="absolute inset-0 mask-image-[radial-gradient(ellipse_80%_80%_at_50%_50%,#000_30%,transparent_100%)]" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-3xl rounded-full pointer-events-none"></div>
         <div className="relative z-10 w-full max-w-sm">
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] mb-6 border border-white/20">
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring" }} className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] mb-6 border border-white/20">
              <Sparkles className="w-6 h-6 text-white" />
           </motion.div>
           <h1 className="text-3xl font-extrabold leading-tight tracking-tight mb-4">
@@ -232,7 +236,7 @@ const AuthPage = () => {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative bg-black/40 backdrop-blur-xl">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative bg-black/40 backdrop-blur-3xl">
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm bg-[#0b141a] p-8 rounded-2xl border border-white/10 shadow-[0_15px_30px_rgba(0,0,0,0.6)] backdrop-blur-lg">
           <div className="mb-6 text-center">
             <h2 className="text-2xl font-bold mb-1.5 text-white">{isLogin ? 'Welcome Back' : 'Initialize Account'}</h2>
@@ -286,7 +290,7 @@ const ProfileSetup = () => {
 
   useEffect(() => { 
     if (!token) navigate('/auth'); 
-    fetch('https://startupmatch-backend.onrender.com/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
+    fetch(`${API_BASE_URL}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => res.json())
       .then(data => { if(data.profile) setFormData(prev => ({ ...prev, ...data.profile })); });
   }, [token, navigate]);
@@ -297,12 +301,12 @@ const ProfileSetup = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('https://startupmatch-backend.onrender.com/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ...formData, experience_years: parseInt(formData.experience_years) || 0 })
       });
       if (response.ok) navigate('/dashboard'); else alert("Server Error occurred during profile save.");
-    } catch (error) { alert("Could not connect to backend!"); }
+    } catch (error) { alert("Network Error while saving profile!"); }
     setIsSubmitting(false);
   };
 
@@ -369,7 +373,10 @@ const ProfileSetup = () => {
                 <AnimatedInput icon={FaGithub} type="url" placeholder="GitHub URL" id="github_url" value={formData.github_url || ''} onChange={handleChange} />
                 <AnimatedInput icon={FaTwitter} type="url" placeholder="Twitter URL" id="twitter_url" value={formData.twitter_url || ''} onChange={handleChange} />
                 <AnimatedInput icon={Globe} type="url" placeholder="Website" id="portfolio_url" value={formData.portfolio_url || ''} onChange={handleChange} />
+                <AnimatedInput icon={FaProductHunt} type="url" placeholder="ProductHunt URL" id="producthunt_url" value={formData.producthunt_url || ''} onChange={handleChange} />
+                <AnimatedInput icon={FaDribbble} type="url" placeholder="Dribbble URL" id="dribbble_url" value={formData.dribbble_url || ''} onChange={handleChange} />
               </div>
+              <AnimatedInput icon={FaMedium} type="url" placeholder="Medium Blog URL" id="medium_url" value={formData.medium_url || ''} onChange={handleChange} />
               <div className="flex justify-between mt-4">
                 <button onClick={() => setStep(3)} className="text-gray-400 hover:text-white font-bold text-xs cursor-pointer transition-colors bg-white/5 px-4 py-2 rounded-xl border border-white/5">&larr; Back</button>
                 <button onClick={handleSubmit} disabled={isSubmitting} className="bg-linear-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-xl font-bold text-xs cursor-pointer shadow-md disabled:opacity-50 transition-colors flex items-center gap-1.5">
@@ -392,10 +399,10 @@ const NetworkFeed = ({ token, onMessageClick }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://startupmatch-backend.onrender.com/users/feed', { headers: { 'Authorization': `Bearer ${token}` } })
+    fetch(`${API_BASE_URL}/users/feed`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => res.json())
       .then(data => { if(Array.isArray(data)) setFeed(data); setIsLoading(false); })
-      .catch(err => { console.error(err); setIsLoading(false); });
+      .catch(err => { console.error("Error fetching feed:", err); setIsLoading(false); });
   }, [token]);
 
   if (isLoading) return <div className="flex-1 flex justify-center items-center h-[50vh]"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>;
@@ -469,7 +476,7 @@ const NetworkFeed = ({ token, onMessageClick }) => {
 };
 
 // ==========================================
-// 6. THE ULTIMATE CHAT UI (SILENT POLLING FIX FOR REALTIME) ⚡
+// 6. THE ULTIMATE CHAT UI (WITH SILENT POLLING & WEBSOCKETS) ⚡
 // ==========================================
 const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUser }) => {
   const [conversations, setConversations] = useState([]);
@@ -484,22 +491,21 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
 
   const loadInbox = useCallback(async () => {
     try {
-      const res = await fetch('https://startupmatch-backend.onrender.com/users/conversations', { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`${API_BASE_URL}/users/conversations`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) setConversations(await res.json());
     } catch(e) {}
   }, [token]);
 
   useEffect(() => { loadInbox(); }, [loadInbox, selectedChatUser]);
 
-  // Stable Fetch History Function (Silent flag prevents auto-scroll jumping during polling)
+  // fetchHistory silent flag prevents UI scrolling on background polls
   const fetchHistory = useCallback(async (silent = false) => {
     if (!activeChatUserIdRef.current) return;
     try {
-      await fetch(`https://startupmatch-backend.onrender.com/users/chat/read/${activeChatUserIdRef.current}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-      const res = await fetch(`https://startupmatch-backend.onrender.com/users/chat/${activeChatUserIdRef.current}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      await fetch(`${API_BASE_URL}/users/chat/read/${activeChatUserIdRef.current}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`${API_BASE_URL}/users/chat/${activeChatUserIdRef.current}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if(res.ok) {
-        const data = await res.json();
-        setMessages(Array.isArray(data) ? data : []);
+        setMessages(await res.json());
         if (!silent) {
            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
         }
@@ -507,24 +513,23 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
     } catch(e) {}
   }, [token]);
 
-  // ⚡ THE REALTIME FIX: Background Polling + WebSockets
+  // Initial Load and Polling
   useEffect(() => {
     if (selectedChatUser) {
-      fetchHistory(false); // Initial load with scroll
-      // Silent polling every 2.5s ensures messages arrive even if WS broadcast fails
-      const interval = setInterval(() => fetchHistory(true), 2500); 
+      fetchHistory(false); 
+      const interval = setInterval(() => fetchHistory(true), 2500); // Background sync every 2.5s
       return () => clearInterval(interval);
     }
   }, [selectedChatUser, fetchHistory]);
 
-  // WebSocket Connection
+  // WebSockets for instant broadcast
   useEffect(() => {
     if (!currentUser) return;
     let ws;
     let reconnectTimeout;
 
     const connectWS = () => {
-      ws = new WebSocket(`wss://startupmatch-backend.onrender.com/ws/chat/${currentUser.id}`);
+      ws = new WebSocket(`${WS_BASE_URL}/${currentUser.id}`);
       wsRef.current = ws;
 
       ws.onmessage = (event) => {
@@ -548,14 +553,14 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ receiver_id: selectedChatUser.id, content: newMessage }));
       setNewMessage(""); 
-      setTimeout(() => fetchHistory(false), 100); // Quick fetch to update sender screen instantly
+      setTimeout(() => fetchHistory(false), 100); 
     } else { alert("Network disconnected. Waiting for sync..."); }
   };
 
   const handleDeleteMessage = async (msgId) => {
-    if(!window.confirm("Delete this message?")) return;
+    if(!window.confirm("Delete this message permanently?")) return;
     try {
-      await fetch(`https://startupmatch-backend.onrender.com/users/messages/${msgId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      await fetch(`${API_BASE_URL}/users/messages/${msgId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       fetchHistory(true); 
     } catch(e) {}
   };
@@ -564,7 +569,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
     const newContent = window.prompt("Edit your message:", msg.content);
     if (!newContent || newContent === msg.content) return;
     try {
-      await fetch(`https://startupmatch-backend.onrender.com/users/messages/${msg.id}`, {
+      await fetch(`${API_BASE_URL}/users/messages/${msg.id}`, {
          method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
          body: JSON.stringify({ content: newContent })
       });
@@ -627,16 +632,16 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
                     return (
                       <div key={msg.id} className={`flex w-full mb-3 group ${isMe ? 'justify-end' : 'justify-start'}`}>
                         <div className={`flex flex-col max-w-[70%] ${isMe ? 'items-end' : 'items-start'}`}>
-                          <div className={`relative px-4 py-2 text-xs shadow-md ${isMe ? 'bg-[#005c4b] text-[#e9edef] rounded-2xl rounded-tr-sm' : 'bg-[#202c33] text-[#e9edef] rounded-2xl rounded-tl-sm border border-white/5'}`}>
+                          <div className={`relative px-4 py-2.5 text-sm shadow-md ${isMe ? 'bg-[#005c4b] text-[#e9edef] rounded-2xl rounded-tr-sm' : 'bg-[#202c33] text-[#e9edef] rounded-2xl rounded-tl-sm border border-white/5'}`}>
                             <p style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap', lineHeight: '1.4' }} className="font-medium">{msg.content}</p>
                             
                             <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <span className="text-[9px] text-gray-400 font-medium tracking-wide">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span className="text-[9px] text-gray-400 font-bold tracking-wider">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {isMe && (msg.is_read ? <CheckCheck className="w-3 h-3 text-[#53bdeb]" /> : <Check className="w-3 h-3 text-gray-400" />)}
                             </div>
                             
                             {isMe && (
-                              <div className="absolute top-1 -left-12 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-[#111b21] p-1 rounded-md border border-white/10 shadow-lg backdrop-blur-md z-10">
+                              <div className="absolute top-1.5 -left-12 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-[#111b21] p-1 rounded-md border border-white/10 shadow-lg backdrop-blur-md z-10">
                                 <Edit2 className="w-3 h-3 text-blue-400 cursor-pointer hover:scale-110 transition-transform" onClick={() => handleEditMessage(msg)} title="Edit" />
                                 <Trash2 className="w-3 h-3 text-red-400 cursor-pointer hover:scale-110 transition-transform" onClick={() => handleDeleteMessage(msg.id)} title="Delete" />
                               </div>
@@ -650,6 +655,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
                 <div ref={messagesEndRef} />
               </div>
               
+              {/* Input Form */}
               <form onSubmit={handleSendMessage} className="p-4 bg-[#202c33] flex gap-3 z-10 border-t border-white/5">
                 <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1 bg-[#2a3942] border border-white/10 text-white font-medium text-xs rounded-xl px-4 py-3 outline-none focus:border-[#00a884] focus:bg-[#2a3942] transition-colors shadow-inner" />
                 <button type="submit" disabled={!newMessage.trim()} className="w-10 h-10 bg-[#00a884] text-[#111b21] rounded-xl flex items-center justify-center hover:bg-[#008f6f] transition-all cursor-pointer disabled:opacity-50"><Send className="w-4 h-4 ml-0.5" /></button>
@@ -669,7 +675,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
 };
 
 // ==========================================
-// 7. IDEA BOARD (WITH EDIT/DELETE)
+// 7. IDEA BOARD
 // ==========================================
 const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
   const [ideas, setIdeas] = useState([]);
@@ -678,7 +684,7 @@ const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
   const [newIdea, setNewIdea] = useState({ title: '', elevator_pitch: '', target_audience: '', seeking: '' });
 
   const fetchIdeas = async () => {
-    const res = await fetch('https://startupmatch-backend.onrender.com/users/ideas', { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API_BASE_URL}/users/ideas`, { headers: { 'Authorization': `Bearer ${token}` } });
     if(res.ok) setIdeas(await res.json());
     setIsLoading(false);
   };
@@ -687,20 +693,20 @@ const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('https://startupmatch-backend.onrender.com/users/ideas', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newIdea) });
+    await fetch(`${API_BASE_URL}/users/ideas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newIdea) });
     setNewIdea({ title: '', elevator_pitch: '', target_audience: '', seeking: '' });
     setShowForm(false); fetchIdeas(); 
   };
 
   const handleDelete = async (id) => {
     if(!window.confirm("Delete this Idea Pitch permanently?")) return;
-    try { await fetch(`https://startupmatch-backend.onrender.com/users/ideas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchIdeas(); } catch(e) {}
+    try { await fetch(`${API_BASE_URL}/users/ideas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchIdeas(); } catch(e) {}
   };
 
   const handleEdit = async (idea) => {
     const newPitch = window.prompt("Update your Elevator Pitch:", idea.elevator_pitch);
     if (!newPitch || newPitch === idea.elevator_pitch) return;
-    try { await fetch(`https://startupmatch-backend.onrender.com/users/ideas/${idea.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ elevator_pitch: newPitch }) }); fetchIdeas(); } catch(e) {}
+    try { await fetch(`${API_BASE_URL}/users/ideas/${idea.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ elevator_pitch: newPitch }) }); fetchIdeas(); } catch(e) {}
   };
 
   if (isLoading) return <div className="flex-1 flex justify-center items-center h-[50vh]"><Loader2 className="w-10 h-10 animate-spin text-yellow-500" /></div>;
@@ -723,7 +729,7 @@ const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
             <h3 className="text-sm font-bold mb-4 text-yellow-400">Deploy New Concept</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-1">
               <AnimatedInput icon={Target} type="text" placeholder="Startup Name / Concept Title" id="title" value={newIdea.title} onChange={(e) => setNewIdea({...newIdea, title: e.target.value})} />
-              <AnimatedInput icon={Users} type="text" placeholder="Who are you seeking? (e.g. MERN Dev)" id="seeking" value={newIdea.seeking} onChange={(e) => setNewIdea({...newIdea, seeking: e.target.value})} />
+              <AnimatedInput icon={Users} type="text" placeholder="Who are you seeking?" id="seeking" value={newIdea.seeking} onChange={(e) => setNewIdea({...newIdea, seeking: e.target.value})} />
             </div>
             <AnimatedInput icon={Globe} type="text" placeholder="Target Audience / Market Size" id="target_audience" value={newIdea.target_audience} onChange={(e) => setNewIdea({...newIdea, target_audience: e.target.value})} />
             <AnimatedTextArea icon={Lightbulb} placeholder="The Elevator Pitch (Explain problem & solution)" id="elevator_pitch" value={newIdea.elevator_pitch} onChange={(e) => setNewIdea({...newIdea, elevator_pitch: e.target.value})} />
@@ -775,7 +781,7 @@ const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
 };
 
 // ==========================================
-// 8. EQUITY CALCULATOR (WORKSPACES INTEGRATION)
+// 8. EQUITY CALCULATOR
 // ==========================================
 const EquityCalculator = ({ workspaceId, token, currentUser }) => {
   const [founders, setFounders] = useState([{ user_id: currentUser?.id || 1, name: currentUser?.full_name || "Founder A", brings_idea: true, is_technical: true, time: "Full-Time", capital: 0 }]);
@@ -784,7 +790,7 @@ const EquityCalculator = ({ workspaceId, token, currentUser }) => {
   const calculateEquity = async () => {
     try {
       const payload = { founders: founders.map(f => ({ user_id: f.user_id, brings_idea: f.brings_idea, is_technical: f.is_technical, time_commitment: f.time, capital_invested: Number(f.capital) })) };
-      const res = await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${workspaceId}/calculate-equity`, {
+      const res = await fetch(`${API_BASE_URL}/users/workspaces/${workspaceId}/calculate-equity`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
       });
       if(res.ok) {
@@ -803,11 +809,11 @@ const EquityCalculator = ({ workspaceId, token, currentUser }) => {
             <input type="text" value={f.name} onChange={e=>{const n=[...founders]; n[idx].name=e.target.value; setFounders(n)}} className="bg-transparent font-bold text-sm border-b border-white/20 outline-none w-28 focus:border-blue-500 text-white placeholder-gray-500 py-1"/>
             <label className="flex items-center gap-2 text-xs font-bold cursor-pointer text-gray-300 hover:text-white transition-colors"><input type="checkbox" checked={f.brings_idea} onChange={e => {const n=[...founders]; n[idx].brings_idea=e.target.checked; setFounders(n)}} className="w-3.5 h-3.5 accent-blue-500 rounded-sm"/> Idea</label>
             <label className="flex items-center gap-2 text-xs font-bold cursor-pointer text-gray-300 hover:text-white transition-colors"><input type="checkbox" checked={f.is_technical} onChange={e => {const n=[...founders]; n[idx].is_technical=e.target.checked; setFounders(n)}} className="w-3.5 h-3.5 accent-blue-500 rounded-sm"/> Tech</label>
-            <select className="bg-[#111b21] border border-white/20 text-white px-3 py-1.5 rounded-lg text-xs outline-none cursor-pointer focus:border-blue-500 font-bold shadow-inner" value={f.time} onChange={e => {const n=[...founders]; n[idx].time=e.target.value; setFounders(n)}}>
+            <select className="bg-[#111b21] border border-white/10 text-white px-3 py-2 rounded-lg text-xs outline-none cursor-pointer focus:border-blue-500 font-bold shadow-inner" value={f.time} onChange={e => {const n=[...founders]; n[idx].time=e.target.value; setFounders(n)}}>
               <option value="Full-Time">Full-Time</option>
               <option value="Part-Time">Part-Time</option>
             </select>
-            <div className="flex items-center gap-1.5 bg-[#111b21] border border-white/20 px-3 py-1.5 rounded-lg focus-within:border-green-500 transition-colors shadow-inner">
+            <div className="flex items-center gap-1.5 bg-[#111b21] border border-white/10 px-3 py-1.5 rounded-lg focus-within:border-green-500 transition-colors shadow-inner">
               <DollarSign className="w-3.5 h-3.5 text-green-400"/>
               <input type="number" value={f.capital} onChange={e => {const n=[...founders]; n[idx].capital=e.target.value; setFounders(n)}} className="bg-transparent text-white w-16 text-xs outline-none font-bold" placeholder="Capital"/>
             </div>
@@ -815,8 +821,8 @@ const EquityCalculator = ({ workspaceId, token, currentUser }) => {
         ))}
       </div>
       <div className="flex gap-3">
-        <button onClick={() => setFounders([...founders, { user_id: Date.now(), name: `Founder ${founders.length+1}`, brings_idea: false, is_technical: false, time: "Full-Time", capital: 0 }])} className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border border-white/10 shadow-sm">Add Founder</button>
-        <button onClick={calculateEquity} className="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-lg text-white font-bold text-xs shadow-md cursor-pointer transition-colors flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5"/> Compute Split</button>
+        <button onClick={() => setFounders([...founders, { user_id: Date.now(), name: `Founder ${founders.length+1}`, brings_idea: false, is_technical: false, time: "Full-Time", capital: 0 }])} className="bg-white/5 hover:bg-white/10 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border border-white/10 shadow-sm hover:scale-105">Add Founder</button>
+        <button onClick={calculateEquity} className="bg-blue-600 hover:bg-blue-500 px-6 py-2.5 rounded-xl text-white text-xs font-bold shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer transition-all hover:scale-105 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5"/> Compute Split</button>
       </div>
 
       <AnimatePresence>
@@ -853,12 +859,12 @@ const WorkspacesView = ({ token, currentUser }) => {
   const [newTaskText, setNewTaskText] = useState("");
 
   const fetchWorkspaces = async () => {
-    const res = await fetch('https://startupmatch-backend.onrender.com/users/workspaces', { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API_BASE_URL}/users/workspaces`, { headers: { 'Authorization': `Bearer ${token}` } });
     if(res.ok) setWorkspaces(await res.json());
   };
 
   const fetchTasks = async (wsId) => {
-    const res = await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${wsId}/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API_BASE_URL}/users/workspaces/${wsId}/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
     if(res.ok) setTasks(await res.json());
   };
 
@@ -867,19 +873,19 @@ const WorkspacesView = ({ token, currentUser }) => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    await fetch('https://startupmatch-backend.onrender.com/users/workspaces', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newWs) });
+    await fetch(`${API_BASE_URL}/users/workspaces`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newWs) });
     setNewWs({ name: '', description: '' }); setShowCreateForm(false); fetchWorkspaces();
   };
 
   const handleDeleteWs = async (id) => {
     if(!window.confirm("CRITICAL WARNING: Delete workspace? Data will be lost.")) return;
-    try { await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchWorkspaces(); setSelectedWs(null); } catch(e) {}
+    try { await fetch(`${API_BASE_URL}/users/workspaces/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchWorkspaces(); setSelectedWs(null); } catch(e) {}
   };
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     if(!newTaskText.trim()) return;
-    await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${selectedWs.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ title: newTaskText }) });
+    await fetch(`${API_BASE_URL}/users/workspaces/${selectedWs.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ title: newTaskText }) });
     setNewTaskText(""); fetchTasks(selectedWs.id);
   };
 
@@ -888,12 +894,12 @@ const WorkspacesView = ({ token, currentUser }) => {
     const idx = statuses.indexOf(currentStatus);
     const newIdx = direction === 'forward' ? idx + 1 : idx - 1;
     if(newIdx < 0 || newIdx >= statuses.length) return;
-    await fetch(`https://startupmatch-backend.onrender.com/users/tasks/${taskId}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status: statuses[newIdx] }) });
+    await fetch(`${API_BASE_URL}/users/tasks/${taskId}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status: statuses[newIdx] }) });
     fetchTasks(selectedWs.id); 
   };
 
   const deleteTask = async (taskId) => {
-    await fetch(`https://startupmatch-backend.onrender.com/users/tasks/${taskId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    await fetch(`${API_BASE_URL}/users/tasks/${taskId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
     fetchTasks(selectedWs.id);
   };
 
@@ -919,14 +925,14 @@ const WorkspacesView = ({ token, currentUser }) => {
               { id: 'in_progress', title: 'In Progress', icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-500/5', border: 'border-yellow-500/20' }, 
               { id: 'done', title: 'Completed', icon: CheckSquare, color: 'text-green-400', bg: 'bg-green-500/5', border: 'border-green-500/20' }
             ].map(col => (
-              <div key={col.id} className={`${col.bg} border ${col.border} rounded-2xl p-5 min-h-[40vh] shadow-lg backdrop-blur-sm`}>
+              <div key={col.id} className={`${col.bg} border ${col.border} rounded-2xl p-5 min-h-[35vh] shadow-lg backdrop-blur-sm`}>
                 <h3 className={`font-bold text-sm mb-4 flex items-center gap-2 ${col.color}`}><col.icon className="w-4 h-4"/> {col.title} <span className="bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md ml-auto border border-white/10">{tasks.filter(t => t.status === col.id).length}</span></h3>
                 <div className="space-y-3">
                   <AnimatePresence>
                     {tasks.filter(t => t.status === col.id).map(task => (
-                      <motion.div key={task.id} initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="bg-[#0b141a] border border-white/10 p-4 rounded-xl flex items-center justify-between group relative shadow-sm hover:border-white/30 transition-colors">
-                        <p className="text-xs font-semibold pr-5 leading-relaxed text-gray-200">{task.title}</p>
-                        <button onClick={()=>deleteTask(task.id)} className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 cursor-pointer shadow-md hover:bg-red-600 transition-all"><Trash2 className="w-3 h-3"/></button>
+                      <motion.div key={task.id} initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="bg-[#0b141a] border border-white/10 p-4 rounded-xl flex items-center justify-between group relative shadow-md hover:border-white/30 transition-colors">
+                        <p className="text-xs font-semibold pr-6 leading-relaxed text-gray-200">{task.title}</p>
+                        <button onClick={()=>deleteTask(task.id)} className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 cursor-pointer shadow-[0_3px_10px_rgba(239,68,68,0.5)] hover:bg-red-600 transition-all hover:scale-110"><Trash2 className="w-3 h-3"/></button>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-2 right-2 bg-black/80 p-1 rounded-md backdrop-blur-md border border-white/10">
                           {col.id !== 'todo' && <button onClick={()=>moveTask(task.id, col.id, 'backward')} className="p-1 hover:text-white text-gray-400 cursor-pointer bg-white/10 rounded hover:bg-white/30 transition-colors"><ChevronLeft className="w-3 h-3"/></button>}
                           {col.id !== 'done' && <button onClick={()=>moveTask(task.id, col.id, 'forward')} className="p-1 hover:text-white text-gray-400 cursor-pointer bg-white/10 rounded hover:bg-white/30 transition-colors"><ChevronRight className="w-3 h-3"/></button>}
@@ -986,11 +992,18 @@ const WorkspacesView = ({ token, currentUser }) => {
               </div>
               <div className="flex justify-between items-center text-[10px] font-bold text-blue-400 mt-2 border-t border-white/10 pt-4">
                 <span className="bg-blue-500/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-blue-500/20"><ListTodo className="w-3 h-3" /> Tasks: {ws.task_count}</span>
-                <span className="flex items-center gap-1 group-hover:text-blue-300 transition-colors bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Enter Board <ArrowRight className="w-3 h-3"/></span>
+                <span className="flex items-center gap-1 group-hover:text-blue-300 transition-colors bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 group-hover:border-white/20">Enter Board <ArrowRight className="w-3 h-3"/></span>
               </div>
             </div>
           </div>
         ))}
+        {workspaces.length === 0 && !showCreateForm && (
+          <div className="col-span-1 md:col-span-2 text-center p-14 bg-white/5 rounded-3xl border border-white/10 shadow-xl backdrop-blur-sm">
+            <Briefcase className="w-16 h-16 text-gray-600 mx-auto mb-5 opacity-40" />
+            <h3 className="text-xl font-bold mb-2 text-white">No active workspaces.</h3>
+            <p className="text-gray-400 text-sm font-medium">Create a secure chamber to begin execution with your team.</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1030,9 +1043,9 @@ const InvestorDashboard = () => {
         {[
           { key: 'pitchDeck', title: 'Pitch Deck Completed', desc: 'A compelling 10-15 slide presentation covering problem, solution, market, and team.', icon: FileText },
           { key: 'mvp', title: 'MVP Deployed', desc: 'Minimum Viable Product is live, functional, and accessible to early users.', icon: Rocket },
-          { key: 'legal', title: 'Legal Incorporation', desc: 'Company is officially registered as a legal entity (e.g., C-Corp, LLC).', icon: Shield },
-          { key: 'traction', title: 'Initial Traction', desc: 'Demonstrable active user growth, waitlist, or early revenue generated.', icon: PieChart },
-          { key: 'cofounderAgreements', title: 'Co-Founder Agreements', desc: 'Equity split, vesting schedules, and IP assignment contracts are fully signed.', icon: CheckSquare }
+          { key: 'legal', title: 'Legal Incorporation', desc: 'Company is officially registered as a legal entity.', icon: Shield },
+          { key: 'traction', title: 'Initial Traction', desc: 'Demonstrable active user growth or early revenue.', icon: PieChart },
+          { key: 'cofounderAgreements', title: 'Co-Founder Agreements', desc: 'Equity split and vesting contracts are signed.', icon: CheckSquare }
         ].map((item) => (
           <div key={item.key} onClick={() => handleToggle(item.key)} className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 group shadow-sm ${readiness[item.key] ? 'bg-green-500/10 border-green-500/40' : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
             <div className="flex justify-between items-start mb-2">
@@ -1086,11 +1099,11 @@ const Dashboard = () => {
     const fetchAllData = async () => {
       try {
         const [meRes, convRes, feedRes, ideasRes, wsRes] = await Promise.all([
-          fetch('https://startupmatch-backend.onrender.com/users/me', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('https://startupmatch-backend.onrender.com/users/conversations', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('https://startupmatch-backend.onrender.com/users/feed', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('https://startupmatch-backend.onrender.com/users/ideas', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('https://startupmatch-backend.onrender.com/users/workspaces', { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch(`${API_BASE_URL}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/users/conversations`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/users/feed`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/users/ideas`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/users/workspaces`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         if (meRes.ok) {
@@ -1158,13 +1171,13 @@ const Dashboard = () => {
         </nav>
 
         <div className="mt-auto pt-6 border-t border-white/10">
-          <div className="flex items-center gap-3 mb-5 px-3 bg-black/40 p-3 rounded-2xl border border-white/5 shadow-inner">
+          <div className="flex items-center gap-3 mb-5 px-3 bg-black/40 p-3 rounded-2xl border border-white/5 shadow-inner hover:bg-white/10 transition-colors">
             <div className="w-10 h-10 rounded-xl bg-linear-to-br from-purple-500/30 to-blue-500/30 border border-white/20 flex items-center justify-center uppercase font-black text-lg text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]">
               {userData?.full_name?.charAt(0) || 'U'}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">{userData?.full_name}</p>
-              <p className="text-[10px] text-purple-400 font-mono font-bold mt-0.5 truncate uppercase bg-purple-500/10 px-1.5 py-0.5 rounded w-fit border border-purple-500/20">
+              <p className="text-sm font-bold text-white truncate tracking-tight">{userData?.full_name}</p>
+              <p className="text-[10px] text-purple-400 font-mono font-bold mt-1 truncate uppercase tracking-widest">
                 {userData?.profile?.primary_role || userData?.role}
               </p>
             </div>
