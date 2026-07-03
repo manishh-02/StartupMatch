@@ -10,9 +10,11 @@ from app.models.user import Message
 from app.api import auth, users
 
 # ==========================================
-# ⚠️ DATABASE SETUP
+# ⚠️ DATABASE SETUP (MASTER RESET)
 # ==========================================
-# Base.metadata.drop_all(bind=engine)
+# Bhai, yeh drop_all purane kachre aur broken tables ko delete kar dega.
+# Taaki Signup aur naye features database par perfectly set ho jayein.
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -91,12 +93,13 @@ async def websocket_chat(websocket: WebSocket, user_id: int):
             db.commit()
             db.refresh(new_message)
             
-            # 5. Message ko sahi JSON format mein pack karo
+            # 5. Message ko sahi JSON format mein pack karo (Frontend ke double-tick ke liye is_read add kiya hai)
             message_response = {
                 "id": new_message.id,
                 "sender_id": user_id,
                 "receiver_id": receiver_id,
                 "content": content,
+                "is_read": False,
                 "timestamp": new_message.timestamp.isoformat()
             }
             
