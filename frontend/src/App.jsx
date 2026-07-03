@@ -188,7 +188,7 @@ const AuthPage = () => {
         ? { 'Content-Type': 'application/x-www-form-urlencoded' }
         : { 'Content-Type': 'application/json' };
 
-      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, { method: 'POST', headers, body: payload });
+      const response = await fetch(`https://startupmatch-backend.onrender.com${endpoint}`, { method: 'POST', headers, body: payload });
       const data = await response.json();
       
       if (response.ok) {
@@ -286,7 +286,7 @@ const ProfileSetup = () => {
 
   useEffect(() => { 
     if (!token) navigate('/auth'); 
-    fetch('http://127.0.0.1:8000/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
+    fetch('https://startupmatch-backend.onrender.com/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => res.json())
       .then(data => { if(data.profile) setFormData(prev => ({ ...prev, ...data.profile })); });
   }, [token, navigate]);
@@ -297,7 +297,7 @@ const ProfileSetup = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/users/profile', {
+      const response = await fetch('https://startupmatch-backend.onrender.com/users/profile', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ...formData, experience_years: parseInt(formData.experience_years) || 0 })
       });
@@ -392,7 +392,7 @@ const NetworkFeed = ({ token, onMessageClick }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/users/feed', { headers: { 'Authorization': `Bearer ${token}` } })
+    fetch('https://startupmatch-backend.onrender.com/users/feed', { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => res.json())
       .then(data => { if(Array.isArray(data)) setFeed(data); setIsLoading(false); })
       .catch(err => { console.error(err); setIsLoading(false); });
@@ -484,7 +484,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
 
   const loadInbox = useCallback(async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/users/conversations', { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch('https://startupmatch-backend.onrender.com/users/conversations', { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) setConversations(await res.json());
     } catch(e) {}
   }, [token]);
@@ -495,8 +495,8 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
   const fetchHistory = useCallback(async (silent = false) => {
     if (!activeChatUserIdRef.current) return;
     try {
-      await fetch(`http://127.0.0.1:8000/users/chat/read/${activeChatUserIdRef.current}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-      const res = await fetch(`http://127.0.0.1:8000/users/chat/${activeChatUserIdRef.current}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      await fetch(`https://startupmatch-backend.onrender.com/users/chat/read/${activeChatUserIdRef.current}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`https://startupmatch-backend.onrender.com/users/chat/${activeChatUserIdRef.current}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if(res.ok) {
         const data = await res.json();
         setMessages(Array.isArray(data) ? data : []);
@@ -524,7 +524,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
     let reconnectTimeout;
 
     const connectWS = () => {
-      ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${currentUser.id}`);
+      ws = new WebSocket(`wss://startupmatch-backend.onrender.com/ws/chat/${currentUser.id}`);
       wsRef.current = ws;
 
       ws.onmessage = (event) => {
@@ -555,7 +555,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
   const handleDeleteMessage = async (msgId) => {
     if(!window.confirm("Delete this message?")) return;
     try {
-      await fetch(`http://127.0.0.1:8000/users/messages/${msgId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      await fetch(`https://startupmatch-backend.onrender.com/users/messages/${msgId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       fetchHistory(true); 
     } catch(e) {}
   };
@@ -564,7 +564,7 @@ const MessagesView = ({ token, currentUser, selectedChatUser, setSelectedChatUse
     const newContent = window.prompt("Edit your message:", msg.content);
     if (!newContent || newContent === msg.content) return;
     try {
-      await fetch(`http://127.0.0.1:8000/users/messages/${msg.id}`, {
+      await fetch(`https://startupmatch-backend.onrender.com/users/messages/${msg.id}`, {
          method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
          body: JSON.stringify({ content: newContent })
       });
@@ -678,7 +678,7 @@ const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
   const [newIdea, setNewIdea] = useState({ title: '', elevator_pitch: '', target_audience: '', seeking: '' });
 
   const fetchIdeas = async () => {
-    const res = await fetch('http://127.0.0.1:8000/users/ideas', { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch('https://startupmatch-backend.onrender.com/users/ideas', { headers: { 'Authorization': `Bearer ${token}` } });
     if(res.ok) setIdeas(await res.json());
     setIsLoading(false);
   };
@@ -687,20 +687,20 @@ const IdeaBoard = ({ token, currentUser, onMessageClick }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('http://127.0.0.1:8000/users/ideas', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newIdea) });
+    await fetch('https://startupmatch-backend.onrender.com/users/ideas', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newIdea) });
     setNewIdea({ title: '', elevator_pitch: '', target_audience: '', seeking: '' });
     setShowForm(false); fetchIdeas(); 
   };
 
   const handleDelete = async (id) => {
     if(!window.confirm("Delete this Idea Pitch permanently?")) return;
-    try { await fetch(`http://127.0.0.1:8000/users/ideas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchIdeas(); } catch(e) {}
+    try { await fetch(`https://startupmatch-backend.onrender.com/users/ideas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchIdeas(); } catch(e) {}
   };
 
   const handleEdit = async (idea) => {
     const newPitch = window.prompt("Update your Elevator Pitch:", idea.elevator_pitch);
     if (!newPitch || newPitch === idea.elevator_pitch) return;
-    try { await fetch(`http://127.0.0.1:8000/users/ideas/${idea.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ elevator_pitch: newPitch }) }); fetchIdeas(); } catch(e) {}
+    try { await fetch(`https://startupmatch-backend.onrender.com/users/ideas/${idea.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ elevator_pitch: newPitch }) }); fetchIdeas(); } catch(e) {}
   };
 
   if (isLoading) return <div className="flex-1 flex justify-center items-center h-[50vh]"><Loader2 className="w-10 h-10 animate-spin text-yellow-500" /></div>;
@@ -784,7 +784,7 @@ const EquityCalculator = ({ workspaceId, token, currentUser }) => {
   const calculateEquity = async () => {
     try {
       const payload = { founders: founders.map(f => ({ user_id: f.user_id, brings_idea: f.brings_idea, is_technical: f.is_technical, time_commitment: f.time, capital_invested: Number(f.capital) })) };
-      const res = await fetch(`http://127.0.0.1:8000/users/workspaces/${workspaceId}/calculate-equity`, {
+      const res = await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${workspaceId}/calculate-equity`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
       });
       if(res.ok) {
@@ -853,12 +853,12 @@ const WorkspacesView = ({ token, currentUser }) => {
   const [newTaskText, setNewTaskText] = useState("");
 
   const fetchWorkspaces = async () => {
-    const res = await fetch('http://127.0.0.1:8000/users/workspaces', { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch('https://startupmatch-backend.onrender.com/users/workspaces', { headers: { 'Authorization': `Bearer ${token}` } });
     if(res.ok) setWorkspaces(await res.json());
   };
 
   const fetchTasks = async (wsId) => {
-    const res = await fetch(`http://127.0.0.1:8000/users/workspaces/${wsId}/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${wsId}/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
     if(res.ok) setTasks(await res.json());
   };
 
@@ -867,19 +867,19 @@ const WorkspacesView = ({ token, currentUser }) => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    await fetch('http://127.0.0.1:8000/users/workspaces', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newWs) });
+    await fetch('https://startupmatch-backend.onrender.com/users/workspaces', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(newWs) });
     setNewWs({ name: '', description: '' }); setShowCreateForm(false); fetchWorkspaces();
   };
 
   const handleDeleteWs = async (id) => {
     if(!window.confirm("CRITICAL WARNING: Delete workspace? Data will be lost.")) return;
-    try { await fetch(`http://127.0.0.1:8000/users/workspaces/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchWorkspaces(); setSelectedWs(null); } catch(e) {}
+    try { await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }}); fetchWorkspaces(); setSelectedWs(null); } catch(e) {}
   };
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     if(!newTaskText.trim()) return;
-    await fetch(`http://127.0.0.1:8000/users/workspaces/${selectedWs.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ title: newTaskText }) });
+    await fetch(`https://startupmatch-backend.onrender.com/users/workspaces/${selectedWs.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ title: newTaskText }) });
     setNewTaskText(""); fetchTasks(selectedWs.id);
   };
 
@@ -888,12 +888,12 @@ const WorkspacesView = ({ token, currentUser }) => {
     const idx = statuses.indexOf(currentStatus);
     const newIdx = direction === 'forward' ? idx + 1 : idx - 1;
     if(newIdx < 0 || newIdx >= statuses.length) return;
-    await fetch(`http://127.0.0.1:8000/users/tasks/${taskId}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status: statuses[newIdx] }) });
+    await fetch(`https://startupmatch-backend.onrender.com/users/tasks/${taskId}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status: statuses[newIdx] }) });
     fetchTasks(selectedWs.id); 
   };
 
   const deleteTask = async (taskId) => {
-    await fetch(`http://127.0.0.1:8000/users/tasks/${taskId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    await fetch(`https://startupmatch-backend.onrender.com/users/tasks/${taskId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
     fetchTasks(selectedWs.id);
   };
 
@@ -1086,11 +1086,11 @@ const Dashboard = () => {
     const fetchAllData = async () => {
       try {
         const [meRes, convRes, feedRes, ideasRes, wsRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/users/me', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/users/conversations', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/users/feed', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/users/ideas', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/users/workspaces', { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch('https://startupmatch-backend.onrender.com/users/me', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('https://startupmatch-backend.onrender.com/users/conversations', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('https://startupmatch-backend.onrender.com/users/feed', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('https://startupmatch-backend.onrender.com/users/ideas', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('https://startupmatch-backend.onrender.com/users/workspaces', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         if (meRes.ok) {
