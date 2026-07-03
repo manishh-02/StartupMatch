@@ -17,11 +17,11 @@ import { FaLinkedin, FaGithub, FaTwitter, FaProductHunt, FaDribbble, FaMedium } 
 // ==========================================
 // Bhai, Yahan par apne Render Backend ka URL daal do (Last mein '/' mat lagana)
 // Example: 'https://startupmatch-backend.onrender.com'
-const API_BASE_URL = 'https://YOUR_BACKEND_URL.onrender.com'; 
+const API_BASE_URL = 'https://startupmatch-api.onrender.com'; 
 
 // WebSockets ke liye 'https' ki jagah 'wss' lagana hai
 // Example: 'wss://startupmatch-backend.onrender.com/ws/chat'
-const WS_BASE_URL = 'wss://YOUR_BACKEND_URL.onrender.com/ws/chat';
+const WS_BASE_URL = 'wss://startupmatch-api.onrender.com/ws/chat';
 
 // ==========================================
 // 0. GLOBAL HELPER FUNCTIONS
